@@ -1,0 +1,15 @@
+
+.window-manager {
+  display: flex;
+  position: relative;
+
+  // fill available space both horizontally and vertically
+  align-self: stretch;
+  flex-grow: 1;
+}
+
+.window-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+}

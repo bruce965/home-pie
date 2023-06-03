@@ -1,0 +1,23 @@
+{
+  "name": "home-pie",
+  "version": "0.1.0",
+  "description": "HomePie, your personal cloud desktop running on your own network.",
+  "author": "Fabio Iotti",
+  "license": "MIT",
+  "private": true,
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build"
+  },
+  "devDependencies": {
+    "@parcel/transformer-sass": "2.8.3",
+    "@types/react-dom": "^18.2.4",
+    "parcel": "^2.8.3",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

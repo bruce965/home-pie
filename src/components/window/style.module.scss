@@ -1,0 +1,244 @@
+$debug-show-handles: false;
+
+.window {
+  position: absolute;
+
+  border-radius: .7em .7em 0 0;
+  box-shadow: 0 0 1.6em #0004;
+
+  border: 1px solid #0002;
+  background: white;
+
+  display: flex;
+  flex-direction: column;
+
+  user-select: contain;
+}
+.window:not(.window-focused) {
+  // hack because `user-select: contain` doesn't work on an modern browser
+  user-select: none;
+}
+
+.title-bar {
+  padding: .4em;
+
+  border-radius: inherit;
+  box-shadow: inset -.1em -.1em .4em #0002;
+
+  background: #ddd;
+  border-bottom: inherit;
+
+  display: flex;
+
+  .window-focused & {
+    background: #ddf;
+  }
+}
+
+.title {
+  flex-grow: 1;
+
+  width: 0;
+  height: 1.2em;
+
+  line-height: 1.2em;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  user-select: none;
+}
+
+.button-minimize,
+.button-maximize,
+.button-close {
+  border-radius: .7em;
+
+  width: 2.4em;
+
+  background: white;
+  //border: 1px solid #0002;
+
+  margin-left: .2em;
+  box-shadow: inset -.1em -.1em .4em #0002;
+}
+
+.content {
+  position: relative;
+  overflow: auto;
+
+  contain: content;
+
+  min-width: fit-content;
+}
+
+.handle-top {
+  position: absolute;
+
+  width: 100%;
+  height: .6em;
+  top: -.2em;
+
+  cursor: n-resize;
+
+  @if $debug-show-handles {
+    background: #f0f4;
+  }
+}
+
+.handle-bottom {
+  position: absolute;
+
+  width: 100%;
+  height: .6em;
+  bottom: -.6em;
+
+  cursor: s-resize;
+
+  @if $debug-show-handles {
+    background: #f0f4;
+  }
+}
+
+.handle-left {
+  position: absolute;
+
+  height: 100%;
+  width: .6em;
+  left: -.6em;
+
+  cursor: w-resize;
+
+  @if $debug-show-handles {
+    background: #0f04;
+  }
+}
+
+.handle-right {
+  position: absolute;
+
+  height: 100%;
+  width: .6em;
+  right: -.6em;
+
+  cursor: e-resize;
+
+  @if $debug-show-handles {
+    background: #0f04;
+  }
+}
+
+.handle-top-left {
+  position: absolute;
+
+  width: 1.2em;
+  height: .6em;
+  top: -.2em;
+  left: -.6em;
+
+  cursor: nw-resize;
+
+  @if $debug-show-handles {
+    background: #00f4;
+  }
+}
+
+.handle-top-right {
+  position: absolute;
+
+  width: 1.2em;
+  height: .6em;
+  top: -.2em;
+  right: -.6em;
+
+  cursor: ne-resize;
+
+  @if $debug-show-handles {
+    background: #00f4;
+  }
+}
+
+.handle-bottom-left {
+  position: absolute;
+
+  width: .6em;
+  height: .6em;
+  bottom: -.6em;
+  left: -.6em;
+
+  cursor: sw-resize;
+
+  @if $debug-show-handles {
+    background: #00f4;
+  }
+}
+
+.handle-bottom-right {
+  position: absolute;
+
+  width: 1em;
+  height: 1em;
+  bottom: -.6em;
+  right: -.6em;
+
+  cursor: se-resize;
+
+  @if $debug-show-handles {
+    background: #00f4;
+  }
+}
+
+// elements used to prevent the selection from going crazy when the cursor leaves the window
+.selection-workaround-left {
+  position: absolute;
+
+  width: 100vw;
+  height: 100%;
+
+  top: 0;
+  right: 100%;
+
+  @if $debug-show-handles {
+    background: #f004;
+  }
+}
+.selection-workaround-top {
+  position: absolute;
+
+  width: 200vw;
+  height: 100vh;
+
+  bottom: 100%;
+  left: -100vw;
+
+  @if $debug-show-handles {
+    background: #00f4;
+  }
+}
+.selection-workaround-right {
+  position: absolute;
+
+  width: 100vw;
+  height: 100%;
+
+  top: 0;
+  left: 100%;
+
+  @if $debug-show-handles {
+    background: #0f04;
+  }
+}
+.selection-workaround-bottom {
+  position: absolute;
+
+  width: 200vw;
+  height: 100vh;
+
+  top: 100%;
+  left: -100vw;
+
+  @if $debug-show-handles {
+    background: #f0f4;
+  }
+}
