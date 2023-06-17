@@ -1,29 +1,37 @@
-import { FC, PropsWithChildren, useCallback } from 'react';
+import { FC, PropsWithChildren, memo, useCallback, useMemo, useState } from 'react';
 import { Window, WindowProps } from '../window';
 import { useWindowManagerDispatch, useWindowManagerState } from './data/hook';
 import { WindowState } from './data/state';
 import * as classNames from './style.module.scss';
 
-export { WindowManagerContext, useWindowManager } from './data/hook';
+export { WindowManagerContext, useWindowManager, useWindowManagerState } from './data/hook';
 
 export const WindowManager: FC<PropsWithChildren> = ({
     children,
 }) => {
     const { windows } = useWindowManagerState();
+    const [moving, setMoving] = useState(false);
 
-    const sortedWindows = Object.entries(windows)
-        .map(([handle, state], i, arr) => ({ handle, state, focused: i === (arr.length - 1), zIndex: i }))
-        .sort((a, b) => a.handle > b.handle ? 1 : -1);
+    const windowNodes = useMemo(() => {
+        const sortedWindows = Object.entries(windows)
+            .map(([handle, state], i, arr) => ({ handle, state, focused: i === (arr.length - 1), zIndex: i }))
+            .sort((a, b) => a.handle > b.handle ? 1 : -1);
 
-    return <div className={classNames['window-manager']}>
-        {children}
-        {sortedWindows.map(({ handle, state, focused, zIndex }) => <ManagedWindow
+        return sortedWindows.map(({ handle, state, focused, zIndex }) => <ManagedWindow
             key={handle}
             zIndex={zIndex}
             focused={focused}
             handle={handle}
             state={state}
-        />)}
+            onMovingChange={setMoving}
+        />);
+    }, [windows, setMoving]);
+
+    // TODO: show snap handles when `moving`.
+
+    return <div className={classNames['window-manager']}>
+        {children}
+        {windowNodes}
     </div>;
 };
 
@@ -32,13 +40,15 @@ interface ManagedWindowProps {
     focused?: boolean
     handle: string
     state: WindowState
+    onMovingChange?(moving: boolean): void
 }
 
-const ManagedWindow: FC<ManagedWindowProps> = ({
+const ManagedWindow: FC<ManagedWindowProps> = memo(({
     zIndex,
     focused,
     handle,
     state,
+    onMovingChange,
 }) => {
     const dispatch = useWindowManagerDispatch();
 
@@ -73,7 +83,8 @@ const ManagedWindow: FC<ManagedWindowProps> = ({
             height={state.height}
             children={state.content}
             onChange={update}
+            onMovingChange={onMovingChange}
             onClose={close}
         />
     </div>;
-};
+});

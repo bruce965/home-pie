@@ -71,6 +71,11 @@ $debug-show-handles: false;
   contain: content;
 
   min-width: fit-content;
+
+  .window-moving & {
+    // HACK: prevent iframe elements from stealing the mouse.
+    pointer-events: none;
+  }
 }
 
 .handle-top {
@@ -189,7 +194,7 @@ $debug-show-handles: false;
   }
 }
 
-// elements used to prevent the selection from going crazy when the cursor leaves the window
+// HACK: elements used to prevent the selection from going crazy when the cursor leaves the window.
 .selection-workaround-left {
   position: absolute;
 
@@ -237,6 +242,22 @@ $debug-show-handles: false;
 
   top: 100%;
   left: -100vw;
+
+  @if $debug-show-handles {
+    background: #f0f4;
+  }
+}
+
+// HACK: prevent iframe elements from stealing the mouse.
+.moving-workaround {
+  position: fixed;
+  z-index: -1;
+
+  width: 100vw;
+  height: 100vh;
+
+  top: 0;
+  left: 0;
 
   @if $debug-show-handles {
     background: #f0f4;

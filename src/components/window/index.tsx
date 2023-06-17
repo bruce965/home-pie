@@ -1,6 +1,9 @@
 import { DOMAttributes, FC, PropsWithChildren, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import * as classNames from './style.module.scss';
 
+const MIN_WIDTH = 160;
+const MIN_HEIGHT = 0;
+
 export interface WindowProps extends PropsWithChildren {
     focused?: boolean | undefined
     title: string
@@ -9,6 +12,7 @@ export interface WindowProps extends PropsWithChildren {
     width: number
     height: number
     onChange?(change: { x?: number, y?: number, width?: number, height?: number }): void
+    onMovingChange?(moving: boolean): void
     onClose?(): void
 }
 
@@ -21,9 +25,11 @@ export const Window: FC<WindowProps> = ({
     height,
     children,
     onChange,
+    onMovingChange,
     onClose,
 }) => {
     const [selectionProbablyInProgress, setSelectionProbablyInProgress] = useState<boolean>();
+    const [moving, setMoving] = useState<boolean>();
 
     const windowRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -47,6 +53,11 @@ export const Window: FC<WindowProps> = ({
 
         setSelectionProbablyInProgress(false);
     }, [setSelectionProbablyInProgress]);
+
+    const movingChange = useCallback((moving: boolean) => {
+        setMoving(moving);
+        onMovingChange?.(moving);
+    }, []);
 
     const minimize = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onClick'], undefined>>(ev => {
         if (ev.defaultPrevented)
@@ -102,9 +113,33 @@ export const Window: FC<WindowProps> = ({
             console.log(focused ? 'focused' : 'blurred', selection.current?.[0]?.startOffset);
     }, [focused]);
 
+    // HACK: workaround to detect when the user focuses an iframe in the content.
+    useEffect(() => {
+        const checkNow = () => {
+            if (!focused && contentRef.current?.contains(window.document.activeElement))
+                onChange?.({}); // bring to top
+        };
+
+        const checkAfterTimeout = () => {
+            setTimeout(checkNow, 0);
+        };
+
+        // HACK: only works if the previously focused element was not another iframe.
+        window.addEventListener('blur', checkAfterTimeout);
+
+        // HACK: always works, but it's not immediate, and it relies on polling.
+        const intervalId = setInterval(checkNow, 120);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('blur', checkAfterTimeout);
+        };
+    }, [contentRef, focused, onChange]);
+
     return <div
         ref={windowRef}
-        className={classNames['window'] + (focused ? (' ' + classNames['window-focused']) : '')}
+        className={classNames['window'] + (focused ? (' ' + classNames['window-focused']) : '')+ (moving ? (' ' + classNames['window-moving']) : '')}
+        tabIndex={-1} // allow focusing the window, but it's not necessary to allow focusing it with tab
         style={{
             top: y,
             left: x,
@@ -118,6 +153,7 @@ export const Window: FC<WindowProps> = ({
             contentRef={contentRef}
             className={classNames['title-bar']}
             onChange={onChange}
+            onMovingChange={movingChange}
         >
             <div className={classNames['title']}>{title}</div>
             <div className={classNames['button-minimize']} onClick={minimize} />
@@ -134,12 +170,16 @@ export const Window: FC<WindowProps> = ({
             ref={contentRef}
             className={classNames['content']}
             style={{
-                width: Math.max(0, width),
-                height: Math.max(0, height),
+                width: Math.max(MIN_WIDTH, width),
+                height: Math.max(MIN_HEIGHT, height),
             }}
             children={children}
             onMouseDown={contentMouseDown}
         />
+
+        {moving && <>
+            <div className={classNames['moving-workaround']} />
+        </>}
 
         {selectionProbablyInProgress && <>
             <div className={classNames['selection-workaround-right']} />
@@ -154,6 +194,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-top']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 moveX={1}
@@ -162,6 +203,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-left']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 resizeWidth={1}
@@ -169,6 +211,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-right']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 resizeHeight={1}
@@ -176,6 +219,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-bottom']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
 
             <Handle
@@ -187,6 +231,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-top-left']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 moveY={1}
@@ -196,6 +241,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-top-right']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 moveX={1}
@@ -205,6 +251,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-bottom-left']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
             <Handle
                 resizeWidth={1}
@@ -213,6 +260,7 @@ export const Window: FC<WindowProps> = ({
                 contentRef={contentRef}
                 className={classNames['handle-bottom-right']}
                 onChange={onChange}
+                onMovingChange={movingChange}
             />
         </>}
     </div>;
@@ -227,6 +275,7 @@ interface HandleProps extends PropsWithChildren {
     contentRef: RefObject<HTMLDivElement>
     className: string
     onChange?(change: { x?: number, y?: number, width?: number, height?: number }): void
+    onMovingChange?(moving: boolean): void
 }
 
 const Handle: FC<HandleProps> = ({
@@ -239,11 +288,20 @@ const Handle: FC<HandleProps> = ({
     className,
     children,
     onChange,
+    onMovingChange,
 }) => {
     const mouseDown = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onMouseDown'], undefined>>(ev => {
+        if (ev.defaultPrevented)
+            return;
+
         ev.preventDefault();
 
+        onMovingChange?.(true);
         onChange?.({});
+
+        // if focus is not on this window, focus it
+        if (!windowRef.current?.contains(document.activeElement))
+            windowRef.current?.focus();
 
         const { top: initialY, left: initialX } = windowRef.current!.getBoundingClientRect() ?? {};
         const { width: initialWidth, height: initialHeight } = contentRef.current!.getBoundingClientRect() ?? {};
@@ -256,24 +314,46 @@ const Handle: FC<HandleProps> = ({
 
             ev.preventDefault();
 
-            const changeX = ev.clientX - startClientX;
-            const changeY = ev.clientY - startClientY;
-
             if (moveX || moveY || resizeWidth || resizeHeight) {
+                const changeX = ev.clientX - startClientX;
+                const changeY = ev.clientY - startClientY;
+
+                let newX = initialX + changeX * (moveX ?? 0);
+                let newY = initialY + changeY * (moveY ?? 0);
+
+                let newWidth = initialWidth + changeX * (resizeWidth ?? 0);
+                let newHeight = initialHeight + changeY * (resizeHeight ?? 0);
+
+                if (newWidth < MIN_WIDTH) {
+                    if (moveX && moveX > 0)
+                        newX += (newWidth - MIN_WIDTH);
+
+                    newWidth = MIN_WIDTH;
+                }
+
+                if (newHeight < MIN_HEIGHT) {
+                    if (moveY && moveY > 0)
+                        newY += (newHeight - MIN_HEIGHT);
+
+                    newHeight = MIN_HEIGHT;
+                }
+
                 onChange?.({
-                    ...moveX ? { x: initialX + changeX * moveX } : undefined,
-                    ...moveY ? { y: initialY + changeY * moveY } : undefined,
-                    ...resizeWidth ? { width: initialWidth + changeX * resizeWidth } : undefined,
-                    ...resizeHeight ? { height: initialHeight + changeY * resizeHeight } : undefined,
+                    ...moveX ? { x: newX } : undefined,
+                    ...moveY ? { y: newY } : undefined,
+                    ...resizeWidth ? { width: newWidth } : undefined,
+                    ...resizeHeight ? { height: newHeight } : undefined,
                 });
             }
         };
 
         const mouseUp = (ev: MouseEvent) => {
-            mouseMove(ev);
-
             window.removeEventListener('mousemove', mouseMove, { capture: false });
             window.removeEventListener('mouseup', mouseUp, { capture: false });
+
+            mouseMove(ev);
+
+            onMovingChange?.(false);
         };
 
         window.addEventListener('mousemove', mouseMove, { capture: false });
@@ -281,6 +361,7 @@ const Handle: FC<HandleProps> = ({
     }, [
         windowRef,
         onChange,
+        onMovingChange,
         moveX,
         moveY,
         resizeWidth,
