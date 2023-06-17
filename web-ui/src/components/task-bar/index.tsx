@@ -29,10 +29,12 @@ export const TaskBar: FC = () => {
             title: `Terminal ${++globalCount}`,
             content: <iframe
                 style={{ display: 'block', border: 0, width: '100%', height: '100%' }}
-                src='http://localhost:7681/?arg=1000&arg=1000&arg=bash'
+                src='/terminal'
+                onError={e => console.log("error", e)}
             />,
         })}>Open terminal</button>
         {handles.map(handle => <TrayBarItem
+            key={handle}
             handle={handle}
             title={windows[handle]?.title ?? ""}
             focused={focused === handle}

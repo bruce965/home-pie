@@ -6,17 +6,17 @@ $debug-show-handles: false;
   border-radius: .7em .7em 0 0;
   box-shadow: 0 0 1.6em #0004;
 
-  border: 1px solid #0002;
   background: white;
 
   display: flex;
   flex-direction: column;
 
   user-select: contain;
-}
-.window:not(.window-focused) {
-  // hack because `user-select: contain` doesn't work on an modern browser
-  user-select: none;
+
+  &:not(.window-focused) {
+    // HACK because `user-select: contain` doesn't work on an modern browser.
+    user-select: none;
+  }
 }
 
 .title-bar {

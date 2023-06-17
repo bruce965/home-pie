@@ -1,3 +1,7 @@
-/node_modules
-/.parcel-cache
-/dist
+/server/.go-cache
+
+/web-ui/.npm-cache
+/web-ui/.parcel-cache
+/web-ui/.yarn-cache
+/web-ui/node_modules
+/web-ui/dist

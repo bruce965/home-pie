@@ -1,10 +1,5 @@
 {
-  "name": "home-pie",
-  "version": "0.1.0",
-  "description": "HomePie, your personal cloud desktop running on your own network.",
-  "author": "Fabio Iotti",
   "license": "MIT",
-  "private": true,
   "source": "src/index.html",
   "scripts": {
     "start": "parcel",

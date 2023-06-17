@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+
+  server:
+    image: golang:1.20
+    ports:
+      - 8080:8080
+    volumes:
+      - ../server:/app
+      - ./server-start.sh:/start.sh:ro
+      - /:/mnt/host
+    user: "${MY_UID:?}:${MY_GID:?}"
+    working_dir: /app
+    entrypoint: bash -e /start.sh
+
+  web-ui:
+    image: node:18.16.0
+    ports:
+      - 1234:1234
+    volumes:
+      - ../web-ui:/app
+      - ./web-ui-start.sh:/start.sh:ro
+    user: "${MY_UID:?}:${MY_GID:?}"
+    working_dir: /app
+    entrypoint: bash -e /start.sh
+
+  ttyd:
+    image: tsl0922/ttyd:1.7.3
+    ports:
+      - 7681:7681
+    volumes:
+      - /:/mnt/host
+      - ./ttyd-entry.sh:/entry.sh:ro
+    entrypoint: ttyd --writable --client-option disableLeaveAlert=true --client-option disableReconnect=true --url-arg -- bash -e /entry.sh
