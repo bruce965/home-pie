@@ -1,0 +1,52 @@
+
+.login-screen {
+  display: flex;
+  position: relative;
+
+  // fill available space both horizontally and vertically
+  align-self: stretch;
+  flex-grow: 1;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.login-dialog {
+  width: 320px;
+  //height: 180px;
+
+  max-width: calc(100vw - 20px);
+
+  border-radius: 1.4em;
+  padding: 1.4em;
+
+  box-shadow: 0 0 1.6em #0008;
+
+  background: white;
+
+  clear: both;
+}
+
+.profile-picture {
+  display: block;
+  float: left;
+
+  width: 100px;
+  height: 100px;
+
+  border-radius: 99em;
+  background: #bdbdbd;
+
+  margin: 0 1.6em 0 0;
+}
+
+.title {
+  font-family: var(--homepie-font-title);
+  font-size: 1.4em;
+
+  margin-bottom: .2em;
+}
+
+.input {
+  width: 100%;
+}

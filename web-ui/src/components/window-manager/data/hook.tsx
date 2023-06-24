@@ -4,6 +4,8 @@ import { WindowManagerState } from './state';
 
 interface WindowOptions {
     title?: string
+    width?: number
+    height?: number
     content?: ReactNode
 }
 
@@ -46,8 +48,10 @@ export const WindowManagerContext: FC<PropsWithChildren> = props => {
                         title: options?.title ?? "",
                         x: 30 + handleNumeric % 10 * 30,
                         y: 30 + handleNumeric % 10 * 30,
-                        width: 300,
-                        height: 200,
+                        width: options?.width ?? 300,
+                        height: options?.height ?? 200,
+                        minimized: false,
+                        maximized: false,
                         content: options?.content,
                     },
                 });
@@ -58,6 +62,9 @@ export const WindowManagerContext: FC<PropsWithChildren> = props => {
                 dispatch({
                     type: 'UPDATE',
                     handle,
+                    update: {
+                        minimized: false,
+                    },
                     bringToTop: true,
                 });
             },

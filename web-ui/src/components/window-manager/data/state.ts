@@ -6,6 +6,8 @@ export interface WindowState {
     y: number
     width: number
     height: number
+    minimized: boolean
+    maximized: boolean
     content: ReactNode
 }
 

@@ -27,9 +27,11 @@ services:
 
   ttyd:
     image: tsl0922/ttyd:1.7.3
+    privileged: true
+    pid: host
     ports:
       - 7681:7681
     volumes:
-      - /:/mnt/host
+      #- /:/mnt/host
       - ./ttyd-entry.sh:/entry.sh:ro
     entrypoint: ttyd --writable --client-option disableLeaveAlert=true --client-option disableReconnect=true --url-arg -- bash -e /entry.sh

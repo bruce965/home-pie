@@ -27,6 +27,8 @@ export const TaskBar: FC = () => {
         })}>Open window</button>
         <button onClick={() => wm.open({
             title: `Terminal ${++globalCount}`,
+            width: 867,
+            height: 385,
             content: <iframe
                 style={{ display: 'block', border: 0, width: '100%', height: '100%' }}
                 src='/terminal'
@@ -97,8 +99,9 @@ const useTrayBar = (windows: WindowManagerState['windows']) => {
                 handlesChanged = true;
             }
 
-            // last window is the focused one
-            trayBar.current.focused = handle;
+            // last non-minimized window is the focused one
+            if (!windows[handle]?.minimized)
+                trayBar.current.focused = handle;
         }
 
         if (handlesChanged)

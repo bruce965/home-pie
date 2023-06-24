@@ -3,14 +3,16 @@ import { TaskBar } from '../task-bar';
 import { Wallpaper } from '../wallpaper';
 import { WindowManager, WindowManagerContext } from '../window-manager';
 import * as classNames from './style.module.scss';
+import { LoginScreen } from '../login-screen';
 
 export const Root: FC = () => {
-    return <WindowManagerContext>
-        <div className={classNames['root']}>
+    return <div className={classNames['root']}>
+        <WindowManagerContext>
             <WindowManager>
                 <Wallpaper />
+                <LoginScreen />
             </WindowManager>
             <TaskBar />
-        </div>
-    </WindowManagerContext>;
+        </WindowManagerContext>
+    </div>;
 };

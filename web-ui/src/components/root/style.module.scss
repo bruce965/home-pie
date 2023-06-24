@@ -1,3 +1,8 @@
+@import "@fontsource/noto-sans/400.css";
+@import "@fontsource/noto-sans/400-italic.css";
+@import "@fontsource/noto-sans/700.css";
+@import "@fontsource/noto-sans/700-italic.css";
+@import "@fontsource/oswald/400.css";
 
 .root {
   position: fixed;
@@ -6,4 +11,11 @@
 
   display: flex;
   flex-direction: column;
+
+  // system config (hardcoded for now)
+  --homepie-font: "Noto Sans";
+  --homepie-font-monospace: monospace;
+  --homepie-font-title: "Oswald";
+
+  font-family: var(--homepie-font);
 }

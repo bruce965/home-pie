@@ -23,6 +23,16 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
+"@fontsource/noto-sans@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@fontsource/noto-sans/-/noto-sans-5.0.3.tgz#2d09d98eca969995f49c5fb794c4ad541cf6ecd4"
+  integrity sha512-x6M139l0kSik4GcIquZk30yj6fjwBRzqdjcnqSAwCJ0AGk32TqZd1OysHrew31IzHUxUmPoq3YByO+4pDPRBxg==
+
+"@fontsource/oswald@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@fontsource/oswald/-/oswald-5.0.3.tgz#89dfcf9c32530ddad782917cd39a9cc61393a475"
+  integrity sha512-O9Wyji0ZEoaPzkv0BxJpRW7/ZwBjbd8wXqirGY8ZupSGIRtEnD3hv5eOWWxwVk+GYoDAZgXE/Qd0P1rxNNqz1Q==
+
 "@jridgewell/gen-mapping@^0.3.0":
   version "0.3.3"
   resolved "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz"

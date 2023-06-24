@@ -6,18 +6,20 @@ const MIN_HEIGHT = 0;
 
 export interface WindowProps extends PropsWithChildren {
     focused?: boolean | undefined
+    maximized?: boolean | undefined
     title: string
     x: number
     y: number
-    width: number
-    height: number
-    onChange?(change: { x?: number, y?: number, width?: number, height?: number }): void
+    width: number | string
+    height: number | string
+    onChange?(change: { x?: number, y?: number, width?: number, height?: number, minimized?: boolean, maximized?: boolean }): void
     onMovingChange?(moving: boolean): void
     onClose?(): void
 }
 
 export const Window: FC<WindowProps> = ({
     focused,
+    maximized,
     title,
     x,
     y,
@@ -65,9 +67,7 @@ export const Window: FC<WindowProps> = ({
 
         ev.preventDefault();
 
-        //onChange?.({
-        //    state: MINIMIZED,
-        //});
+        onChange?.({ minimized: true });
     }, [onChange]);
 
     const maximize = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onClick'], undefined>>(ev => {
@@ -76,13 +76,23 @@ export const Window: FC<WindowProps> = ({
 
         ev.preventDefault();
 
-        //onChange?.({
-        //    state: MAXIMIZED,
-        //});
-    }, [onChange]);
+        onChange?.({ maximized: !maximized });
+    }, [onChange, maximized]);
 
     const close = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onClick'], undefined>>(ev => {
         if (ev.defaultPrevented)
+            return;
+
+        ev.preventDefault();
+
+        onClose?.();
+    }, [onClose]);
+
+    const closeMiddleClick = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onMouseUp'], undefined>>(ev => {
+        if (ev.defaultPrevented)
+            return;
+
+        if (ev.button !== 1)
             return;
 
         ev.preventDefault();
@@ -143,7 +153,10 @@ export const Window: FC<WindowProps> = ({
         style={{
             top: y,
             left: x,
+            width: typeof width === 'number' ? '' : width,
+            height: typeof height === 'number' ? '' : height,
         }}
+        data-maximized={maximized}
         onDragOver={windowDragOver}
     >
         <Handle
@@ -154,10 +167,12 @@ export const Window: FC<WindowProps> = ({
             className={classNames['title-bar']}
             onChange={onChange}
             onMovingChange={movingChange}
+            onMouseUp={closeMiddleClick}
+            onDoubleClick={maximize}
         >
             <div className={classNames['title']}>{title}</div>
             <div className={classNames['button-minimize']} onClick={minimize} />
-            <div className={classNames['button-maximize']} onClick={maximize}  />
+            <div className={classNames['button-maximize']} onClick={maximize} />
             <div className={classNames['button-close']} onClick={close} />
         </Handle>
 
@@ -170,8 +185,8 @@ export const Window: FC<WindowProps> = ({
             ref={contentRef}
             className={classNames['content']}
             style={{
-                width: Math.max(MIN_WIDTH, width),
-                height: Math.max(MIN_HEIGHT, height),
+                width: typeof width === 'number' ? Math.max(MIN_WIDTH, width) : '100%',
+                height: typeof height === 'number' ? Math.max(MIN_HEIGHT, height) : '100%',
             }}
             children={children}
             onMouseDown={contentMouseDown}
@@ -186,7 +201,7 @@ export const Window: FC<WindowProps> = ({
             <div className={classNames['selection-workaround-bottom']} />
         </>}
 
-        {!selectionProbablyInProgress && <>
+        {!selectionProbablyInProgress && !maximized && <>
             <Handle
                 moveY={1}
                 resizeHeight={-1}
@@ -274,11 +289,11 @@ interface HandleProps extends PropsWithChildren {
     windowRef: RefObject<HTMLDivElement>
     contentRef: RefObject<HTMLDivElement>
     className: string
-    onChange?(change: { x?: number, y?: number, width?: number, height?: number }): void
+    onChange?(change: { x?: number, y?: number, width?: number, height?: number, maximized?: boolean }): void
     onMovingChange?(moving: boolean): void
 }
 
-const Handle: FC<HandleProps> = ({
+const Handle: FC<HandleProps & Exclude<DOMAttributes<HTMLDivElement>, HandleProps>> = ({
     moveX,
     moveY,
     resizeWidth,
@@ -286,9 +301,9 @@ const Handle: FC<HandleProps> = ({
     windowRef,
     contentRef,
     className,
-    children,
     onChange,
     onMovingChange,
+    ...others
 }) => {
     const mouseDown = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onMouseDown'], undefined>>(ev => {
         if (ev.defaultPrevented)
@@ -296,7 +311,6 @@ const Handle: FC<HandleProps> = ({
 
         ev.preventDefault();
 
-        onMovingChange?.(true);
         onChange?.({});
 
         // if focus is not on this window, focus it
@@ -308,11 +322,18 @@ const Handle: FC<HandleProps> = ({
 
         const { clientX: startClientX, clientY: startClientY } = ev;
 
+        let movedAtLeastOnce = false;
+
         const mouseMove = (ev: MouseEvent) => {
             if (ev.defaultPrevented)
                 return;
 
             ev.preventDefault();
+
+            if (!movedAtLeastOnce) {
+                movedAtLeastOnce = true;
+                onMovingChange?.(true);
+            }
 
             if (moveX || moveY || resizeWidth || resizeHeight) {
                 const changeX = ev.clientX - startClientX;
@@ -339,6 +360,7 @@ const Handle: FC<HandleProps> = ({
                 }
 
                 onChange?.({
+                    maximized: false,
                     ...moveX ? { x: newX } : undefined,
                     ...moveY ? { y: newY } : undefined,
                     ...resizeWidth ? { width: newWidth } : undefined,
@@ -351,7 +373,8 @@ const Handle: FC<HandleProps> = ({
             window.removeEventListener('mousemove', mouseMove, { capture: false });
             window.removeEventListener('mouseup', mouseUp, { capture: false });
 
-            mouseMove(ev);
+            if (movedAtLeastOnce)
+                mouseMove(ev);
 
             onMovingChange?.(false);
         };
@@ -368,9 +391,15 @@ const Handle: FC<HandleProps> = ({
         resizeHeight
     ]);
 
+    const othersOnMouseDown = others.onMouseDown;
+    const mouseDownHandler = useCallback<Exclude<DOMAttributes<HTMLDivElement>['onMouseDown'], undefined>>(ev => {
+        mouseDown(ev);
+        othersOnMouseDown?.(ev);
+    }, [mouseDown, othersOnMouseDown]);
+
     return <div
+        {...others}
         className={className}
-        onMouseDown={mouseDown}
-        children={children}
+        onMouseDown={mouseDownHandler}
     />;
 };
